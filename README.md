@@ -8,6 +8,9 @@ Usa `@dineug/erd-editor` **4.2.0**, incluido en `vendor/` con licencia MIT.
 No requiere instalar paquetes ni compilar. El SQL no se ejecuta: se interpreta
 como estructura para dibujarla en el navegador.
 
+La implementación se construyó principalmente con asistencia de IA y revisión
+humana; ver [Origen y método de construcción](#origen-y-método-de-construcción).
+
 ## Arranque
 
 Desde este directorio:
@@ -180,6 +183,7 @@ están en `docs/RESULTADOS_OPTIMIZACION_CANVAS.md`.
 | `tools/test-graph.cjs`, `tools/benchmark-analysis.cjs` | Pruebas y ensayo del índice sin navegador. |
 | `tools/browser-harness.mjs`, `tools/benchmark-large-canvas.mjs` | Benchmark de 1000/5000 tablas en Chrome. |
 | `start.sh` | Servidor local. |
+| `LICENSE` | Licencia MIT del código propio. |
 | `vendor/` | Editor y licencias, sin modificaciones. |
 | `docs/` | Planes y resultados históricos del desarrollo. |
 
@@ -252,9 +256,67 @@ no conteos reales ni reglas de negocio adicionales. Se mantiene el aviso de
 Con Modo fluido, las etiquetas se ocultan solo durante el movimiento y vuelven
 al detenerse; desactívalo si necesitas verlas continuamente al desplazar.
 
+## Origen y método de construcción
+
+Este proyecto se desarrolló principalmente con asistencia de IA en sesiones de
+OpenCode, bajo dirección, revisión y validación humanas. La sesión de publicación
+usó DeepSeek V4.1 Flash. El código propio se escribió para este proyecto; las
+dependencias externas se conservan en `vendor/` con sus licencias. El registro
+interno de sesiones (`agents.mb`) y los esquemas SQL privados usados durante el
+desarrollo no se distribuyen.
+
+### Fuentes técnicas
+
+- [`@dineug/erd-editor`](https://www.npmjs.com/package/@dineug/erd-editor)
+  4.2.0: editor base, descargado de jsDelivr y conservado sin modificaciones en
+  `vendor/`. Licencia MIT. Ver `vendor/README.md`.
+- [`elkjs`](https://github.com/kieler/elkjs) 0.10.0 y su worker: layout
+  jerárquico local. Licencia EPL-2.0. Ver `vendor/README.md`.
+- Documentación pública de los dialectos SQL que la app intenta interpretar:
+  [MySQL 8.0](https://dev.mysql.com/doc/refman/8.0/en/),
+  [PostgreSQL](https://www.postgresql.org/docs/),
+  [SQLite](https://www.sqlite.org/docs.html),
+  [SQL Server](https://learn.microsoft.com/sql/t-sql/language-reference) y
+  [Oracle](https://docs.oracle.com/en/database/oracle/oracle-database/).
+  La app no ejecuta SQL ni certifica todos los dialectos; solo inventaría el
+  DDL que puede reconocer.
+- Documentación web estándar para IndexedDB, Web Workers, SVG y APIs del
+  navegador ([MDN Web Docs](https://developer.mozilla.org/) y especificaciones
+  del W3C/WHATWG).
+- Los esquemas privados que se usaron como prueba durante el desarrollo no
+  forman parte del repositorio. El ejemplo público es sintético y se genera con
+  `node tools/generate-example.mjs`; no proviene de datos reales.
+- Las mediciones de `docs/performance/` se tomaron en Chrome local con un modelo
+  privado de 127 tablas. Son históricas y no se reproducen solo con el ejemplo
+  público.
+
+### Cómo se construyó
+
+1. Análisis del editor `erd-editor`, de esquemas SQL reales y de los límites de
+   importación.
+2. Planes de rediseño visual y de optimización del canvas, conservados en
+   `docs/PLAN_VISUAL_FRONTEND.md` y `docs/PLAN_OPTIMIZACION_CANVAS.md`.
+3. Implementación iterativa del importador, el índice en workers, el render
+   incremental DOM/SVG, la persistencia y la interfaz, con asistencia de IA.
+4. Verificación con pruebas Node y Chrome, comparación de conteos del DDL y
+   pruebas de interacción; los resultados están en `docs/`.
+5. Publicación: exclusión de SQL privado, creación del ejemplo sintético de 150
+   tablas, servidor local standalone, GitHub Pages y licencia MIT.
+
+### Alcance y límites
+
+La IA puede cometer errores. El software se ofrece "tal cual", sin garantía,
+según la licencia MIT. No es un validador completo de SQL, no ejecuta
+migraciones y no garantiza compatibilidad con todos los dialectos. Antes de
+usarlo con un esquema de producción, revisa el DDL, contrasta los conteos y
+prueba una copia. La app no envía los esquemas a ningún servidor.
+
 ## Licencias
 
-El código propio de este repositorio no declara licencia: queda con todos los
-derechos reservados. Las dependencias incluidas en `vendor/` conservan sus
-licencias originales: `@dineug/erd-editor` es MIT y `elkjs` es EPL-2.0.
-Consulta `vendor/README.md` y los archivos `LICENSE.*` antes de redistribuirlas.
+El código propio de este repositorio se distribuye bajo la **licencia MIT**.
+Consulta [`LICENSE`](LICENSE).
+
+Las dependencias incluidas en `vendor/` conservan sus licencias originales:
+`@dineug/erd-editor` es MIT y `elkjs` es EPL-2.0. La licencia MIT del proyecto
+no sustituye ni relicencia esas dependencias; consulta `vendor/README.md` y los
+archivos `vendor/LICENSE.*` antes de redistribuirlas.
