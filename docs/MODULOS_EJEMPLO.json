@@ -1,0 +1,216 @@
+{
+  "status": "ejemplo sintético revisable",
+  "source": "examples/demo-150-mysql.sql",
+  "note": "No contiene datos reales. Se regenera con node tools/generate-example.mjs.",
+  "measurements": {
+    "tables": 150,
+    "columns": 1549,
+    "foreignKeys": 356,
+    "modules": 10,
+    "compositeForeignKeys": 9,
+    "selfReferences": 6,
+    "oneToOneRelations": 5
+  },
+  "groups": [
+    {
+      "name": "Núcleo y seguridad",
+      "tables": [
+        "core_empresas",
+        "core_usuarios",
+        "core_roles",
+        "core_permisos",
+        "core_usuario_roles",
+        "core_monedas",
+        "core_paises",
+        "core_ciudades",
+        "core_estados",
+        "core_configuracion",
+        "core_auditoria",
+        "core_notificaciones",
+        "core_archivos",
+        "core_categorias",
+        "core_etiquetas"
+      ]
+    },
+    {
+      "name": "CRM",
+      "tables": [
+        "crm_clientes",
+        "crm_contactos",
+        "crm_oportunidades",
+        "crm_actividades",
+        "crm_campanas",
+        "crm_segmentos",
+        "crm_interacciones",
+        "crm_prospectos",
+        "crm_cotizaciones",
+        "crm_seguimientos",
+        "crm_consentimientos",
+        "crm_direcciones",
+        "crm_telefonos",
+        "crm_correos",
+        "crm_encuestas"
+      ]
+    },
+    {
+      "name": "Ventas",
+      "tables": [
+        "ventas_pedidos",
+        "ventas_pedido_lineas",
+        "ventas_facturas",
+        "ventas_factura_lineas",
+        "ventas_pagos",
+        "ventas_devoluciones",
+        "ventas_descuentos",
+        "ventas_vendedores",
+        "ventas_metas",
+        "ventas_comisiones",
+        "ventas_suscripciones",
+        "ventas_renovaciones",
+        "ventas_contratos",
+        "ventas_ofertas",
+        "ventas_listas_precios"
+      ]
+    },
+    {
+      "name": "Compras",
+      "tables": [
+        "compras_ordenes",
+        "compras_orden_lineas",
+        "compras_proveedores",
+        "compras_solicitudes",
+        "compras_recepciones",
+        "compras_facturas",
+        "compras_pagos",
+        "compras_contratos",
+        "compras_evaluaciones",
+        "compras_categorias",
+        "compras_requisiciones",
+        "compras_comparativas",
+        "compras_incidencias",
+        "compras_devoluciones",
+        "compras_presupuestos"
+      ]
+    },
+    {
+      "name": "Inventario",
+      "tables": [
+        "inventario_productos",
+        "inventario_variantes",
+        "inventario_categorias",
+        "inventario_almacenes",
+        "inventario_ubicaciones",
+        "inventario_stock",
+        "inventario_movimientos",
+        "inventario_lotes",
+        "inventario_series",
+        "inventario_transferencias",
+        "inventario_ajustes",
+        "inventario_conteos",
+        "inventario_kits",
+        "inventario_precios",
+        "inventario_reordenes"
+      ]
+    },
+    {
+      "name": "Finanzas",
+      "tables": [
+        "finanzas_asientos",
+        "finanzas_asiento_lineas",
+        "finanzas_cuentas",
+        "finanzas_movimientos",
+        "finanzas_presupuestos",
+        "finanzas_centros_costo",
+        "finanzas_impuestos",
+        "finanzas_tipos_cambio",
+        "finanzas_conciliaciones",
+        "finanzas_cobros",
+        "finanzas_pagos",
+        "finanzas_periodos",
+        "finanzas_activos",
+        "finanzas_depreciaciones",
+        "finanzas_reportes"
+      ]
+    },
+    {
+      "name": "Logística",
+      "tables": [
+        "logistica_envios",
+        "logistica_envio_lineas",
+        "logistica_transportistas",
+        "logistica_rutas",
+        "logistica_paradas",
+        "logistica_guias",
+        "logistica_incidencias",
+        "logistica_centros",
+        "logistica_vehiculos",
+        "logistica_conductores",
+        "logistica_tarifas",
+        "logistica_seguimientos",
+        "logistica_devoluciones",
+        "logistica_paquetes",
+        "logistica_zonas"
+      ]
+    },
+    {
+      "name": "Proyectos",
+      "tables": [
+        "proyectos_proyectos",
+        "proyectos_tareas",
+        "proyectos_fases",
+        "proyectos_asignaciones",
+        "proyectos_hitos",
+        "proyectos_riesgos",
+        "proyectos_incidencias",
+        "proyectos_documentos",
+        "proyectos_tiempos",
+        "proyectos_presupuestos",
+        "proyectos_gastos",
+        "proyectos_equipos",
+        "proyectos_entregables",
+        "proyectos_revisiones",
+        "proyectos_comentarios"
+      ]
+    },
+    {
+      "name": "Soporte",
+      "tables": [
+        "soporte_tickets",
+        "soporte_mensajes",
+        "soporte_categorias",
+        "soporte_prioridades",
+        "soporte_estados",
+        "soporte_agentes",
+        "soporte_sla",
+        "soporte_escalamientos",
+        "soporte_soluciones",
+        "soporte_articulos",
+        "soporte_encuestas",
+        "soporte_satisfaccion",
+        "soporte_incidentes",
+        "soporte_cambios",
+        "soporte_problemas"
+      ]
+    },
+    {
+      "name": "RR. HH.",
+      "tables": [
+        "rrhh_nominas",
+        "rrhh_nomina_lineas",
+        "rrhh_empleados",
+        "rrhh_departamentos",
+        "rrhh_puestos",
+        "rrhh_contratos",
+        "rrhh_asistencias",
+        "rrhh_vacaciones",
+        "rrhh_licencias",
+        "rrhh_evaluaciones",
+        "rrhh_capacitaciones",
+        "rrhh_beneficios",
+        "rrhh_reclutamiento",
+        "rrhh_candidatos",
+        "rrhh_historial"
+      ]
+    }
+  ]
+}

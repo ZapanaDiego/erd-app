@@ -1,0 +1,40 @@
+{
+  "environment": {
+    "binary": "/home/diego/.cache/puppeteer/chrome/linux-154.0.8037.57/chrome-linux64/chrome",
+    "gpuRequested": true,
+    "headless": true,
+    "cpu": 1
+  },
+  "results": [
+    {
+      "tables": 1000,
+      "relations": 5000,
+      "indexAndInitialUiMs": 185,
+      "mapNodes": 20,
+      "focusNodes": 11,
+      "moduleNodes": 50,
+      "panHandlerP95Ms": 0.2999999998137355,
+      "cardsCreatedDuringPan": 0,
+      "sourceUnchanged": true,
+      "heapBeforeBytes": 59555064,
+      "heapAfterBytes": 59778824,
+      "heapGrowthPercent": 0.38
+    },
+    {
+      "tables": 5000,
+      "relations": 25000,
+      "indexAndInitialUiMs": 1102.7,
+      "mapNodes": 20,
+      "focusNodes": 11,
+      "moduleNodes": 250,
+      "panHandlerP95Ms": 0.20000000018626451,
+      "cardsCreatedDuringPan": 0,
+      "sourceUnchanged": true,
+      "heapBeforeBytes": 96981308,
+      "heapAfterBytes": 97313180,
+      "heapGrowthPercent": 0.34
+    }
+  ],
+  "errors": [],
+  "scope": "Modelo sintético con 8 columnas por tabla, 5 FK por tabla, incluidas compuestas; mapa, enfoque y módulo. No mide layout global de 5000 tablas ni compatibilidad del importador SQL."
+}

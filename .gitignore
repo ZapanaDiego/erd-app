@@ -1,0 +1,22 @@
+# Esquemas privados de clientes
+aquiavisos_base_datos_unificada_postgresql.sql
+Urbanizadoras_SaaS_MySQL.sql
+Modelo_Unificado_v3_1_Restricciones_PostgreSQL.sql
+docs/MODULOS_PROPUESTOS.json
+
+# Notas internas de sesión
+agents.mb
+AGENTS.md
+
+# Suite interna ligada al modelo privado de 127 tablas
+tools/verify.mjs
+tools/regressions.mjs
+tools/analysis-regressions.mjs
+tools/performance-regressions.mjs
+tools/cardinality-regressions.mjs
+tools/benchmark-canvas.mjs
+
+# Temporales
+__pycache__/
+.DS_Store
+*.log

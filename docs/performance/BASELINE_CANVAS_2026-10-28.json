@@ -1,0 +1,126 @@
+{
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1400,
+    "height": 900
+  },
+  "results": [
+    {
+      "case": "mapa",
+      "projected": 9,
+      "mounted": 9,
+      "bundles": 0,
+      "domElements": 67,
+      "wheelEvents": 60,
+      "handlerP50Ms": 3.5,
+      "handlerP95Ms": 4,
+      "calls": {
+        "card": 540,
+        "renderCanvas": 60,
+        "drawEdges": 60,
+        "drawMinimap": 120,
+        "transform": 60
+      },
+      "mutations": {
+        "added": 540,
+        "removed": 540
+      },
+      "cachedShowMs": 6.8,
+      "cachedShowCalls": {
+        "card": 18,
+        "renderCanvas": 1,
+        "drawEdges": 1,
+        "drawMinimap": 2,
+        "transform": 1
+      }
+    },
+    {
+      "case": "ruta",
+      "projected": 3,
+      "mounted": 3,
+      "bundles": 2,
+      "domElements": 124,
+      "wheelEvents": 60,
+      "handlerP50Ms": 4.1,
+      "handlerP95Ms": 4.5,
+      "calls": {
+        "card": 180,
+        "renderCanvas": 60,
+        "drawEdges": 60,
+        "drawMinimap": 120,
+        "transform": 60
+      },
+      "mutations": {
+        "added": 180,
+        "removed": 180
+      },
+      "cachedShowMs": 8.7,
+      "cachedShowCalls": {
+        "card": 6,
+        "renderCanvas": 1,
+        "drawEdges": 1,
+        "drawMinimap": 2,
+        "transform": 1
+      }
+    },
+    {
+      "case": "todas_claves",
+      "projected": 127,
+      "mounted": 127,
+      "bundles": 385,
+      "domElements": 3600,
+      "wheelEvents": 60,
+      "handlerP50Ms": 60,
+      "handlerP95Ms": 134.5,
+      "calls": {
+        "card": 7620,
+        "renderCanvas": 60,
+        "drawEdges": 60,
+        "drawMinimap": 120,
+        "transform": 60
+      },
+      "mutations": {
+        "added": 7620,
+        "removed": 7620
+      },
+      "cachedShowMs": 148.3,
+      "cachedShowCalls": {
+        "card": 254,
+        "renderCanvas": 1,
+        "drawEdges": 1,
+        "drawMinimap": 2,
+        "transform": 1
+      }
+    },
+    {
+      "case": "todas_columnas",
+      "projected": 127,
+      "mounted": 127,
+      "bundles": 385,
+      "domElements": 6208,
+      "wheelEvents": 60,
+      "handlerP50Ms": 92,
+      "handlerP95Ms": 242.3,
+      "calls": {
+        "card": 7620,
+        "renderCanvas": 60,
+        "drawEdges": 60,
+        "drawMinimap": 120,
+        "transform": 60
+      },
+      "mutations": {
+        "added": 7620,
+        "removed": 7620
+      },
+      "cachedShowMs": 232.7,
+      "cachedShowCalls": {
+        "card": 254,
+        "renderCanvas": 1,
+        "drawEdges": 1,
+        "drawMinimap": 2,
+        "transform": 1
+      }
+    }
+  ],
+  "sourceUnchanged": true
+}

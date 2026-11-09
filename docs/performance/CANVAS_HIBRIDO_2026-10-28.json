@@ -1,0 +1,196 @@
+{
+  "environment": {
+    "binary": "/home/diego/.cache/puppeteer/chrome/linux-154.0.8037.57/chrome-linux64/chrome",
+    "gpuRequested": true,
+    "gpuReport": {
+      "devices": [
+        {
+          "vendor": "Google Inc. (Google)",
+          "device": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)"
+        }
+      ],
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+      "featureStatus": {
+        "2d_canvas": "unavailable_software",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "disabled_software",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "disabled_off",
+        "rasterization": "disabled_software",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "disabled_software",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "unavailable_software",
+        "webgpu": "unavailable_software",
+        "webgpu_on_vk_via_gl_interop": "disabled_off",
+        "webnn": "unavailable_software"
+      }
+    },
+    "headless": true,
+    "cpu": 1
+  },
+  "data": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "dpr": 1,
+    "viewport": {
+      "width": 1400,
+      "height": 900
+    },
+    "results": [
+      {
+        "case": "mapa",
+        "repeat": 0,
+        "fluid": false,
+        "linkMode": "selection",
+        "events": 60,
+        "projected": 9,
+        "mounted": 9,
+        "domElements": 69,
+        "handlerP50Ms": 0.2,
+        "handlerP95Ms": 0.4,
+        "rafIntervalP95Ms": 16.8,
+        "rafIntervalsOver33Ms": 0,
+        "commitP95Ms": 0.4,
+        "calls": {},
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 49.2,
+        "cachedShowCalls": {}
+      },
+      {
+        "case": "ruta",
+        "repeat": 0,
+        "fluid": false,
+        "linkMode": "context",
+        "events": 60,
+        "projected": 3,
+        "mounted": 3,
+        "domElements": 130,
+        "handlerP50Ms": 0.2,
+        "handlerP95Ms": 0.3,
+        "rafIntervalP95Ms": 16.8,
+        "rafIntervalsOver33Ms": 0,
+        "commitP95Ms": 0.3,
+        "calls": {
+          "card": 0
+        },
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 50,
+        "cachedShowCalls": {
+          "card": 0
+        }
+      },
+      {
+        "case": "todas_claves",
+        "repeat": 0,
+        "fluid": false,
+        "linkMode": "context",
+        "events": 60,
+        "projected": 127,
+        "mounted": 127,
+        "domElements": 3183,
+        "handlerP50Ms": 0.1,
+        "handlerP95Ms": 0.2,
+        "rafIntervalP95Ms": 33.4,
+        "rafIntervalsOver33Ms": 1,
+        "commitP95Ms": 2.4,
+        "calls": {
+          "card": 0
+        },
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 55.8,
+        "cachedShowCalls": {
+          "card": 0
+        }
+      },
+      {
+        "case": "todas_columnas",
+        "repeat": 0,
+        "fluid": false,
+        "linkMode": "context",
+        "events": 60,
+        "projected": 127,
+        "mounted": 127,
+        "domElements": 5791,
+        "handlerP50Ms": 0.1,
+        "handlerP95Ms": 0.2,
+        "rafIntervalP95Ms": 33.4,
+        "rafIntervalsOver33Ms": 3,
+        "commitP95Ms": 2.3,
+        "calls": {
+          "card": 0
+        },
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 53.8,
+        "cachedShowCalls": {
+          "card": 0
+        }
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  "errors": [],
+  "machine": {
+    "cpu": "AMD Ryzen AI 7 350 w/ Radeon 860M",
+    "logicalCpus": 16,
+    "memoryGiB": 13.4
+  },
+  "methodology": {
+    "quick": true,
+    "fluid": false,
+    "linksHidden": false,
+    "syntheticInput": true,
+    "rafIsNotPresentedFps": true,
+    "notes": "Manejador y commit se miden por separado. rAF no certifica frames presentados. --visible permite revisar GPU real; --disable-gpu permite comparar con la línea base anterior."
+  }
+}

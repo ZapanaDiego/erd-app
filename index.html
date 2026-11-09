@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ERD · Explorador de esquemas</title><link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="analysis/explorer.css">
+  <script src="vendor/erd-editor.umd.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="#" aria-label="Explorador de esquemas"><span class="brand-mark">ERD</span><span><strong>Explorador de esquemas</strong><small id="document-name">Tu base de datos, por contexto</small></span></a>
+    <div class="header-actions">
+      <label class="database-label" for="database">Motor SQL <select id="database" data-import-lock><option>MySQL</option><option>PostgreSQL</option><option>SQLite</option><option>MariaDB</option><option>MSSQL</option><option>Oracle</option></select></label>
+      <button id="btn-upload" class="primary" type="button" data-import-lock>Subir esquema</button>
+      <input id="file-input" type="file" accept=".sql,.dbml,.json,.graphql,.gql,.graphqls,.aml" multiple hidden data-import-lock>
+      <details id="file-menu" class="file-menu"><summary>Archivo</summary><div class="file-popover">
+        <button id="btn-paste" type="button" data-import-lock>Pegar código</button><button id="btn-example" type="button" data-import-lock>Cargar ejemplo (150 tablas)</button>
+        <button id="btn-open" type="button" data-import-lock>Abrir .erd.json</button><input id="json-input" type="file" accept=".json,.erd.json" hidden data-import-lock>
+        <button id="btn-save" type="button" data-import-lock>Guardar modelo completo .erd.json</button><button id="export-view" type="button">Exportar vistas .json</button><button id="import-views" type="button">Importar vistas .json</button><input id="views-input" type="file" accept=".json" hidden>
+        <button id="export-svg" type="button">Exportar imagen de esta vista</button><button id="btn-new" type="button" data-import-lock>Nuevo</button>
+      </div></details>
+      <button id="toggle-editor" type="button" data-import-lock>Editar esquema</button><button id="theme-button" type="button" aria-label="Cambiar tema claro u oscuro">Tema</button>
+    </div>
+  </header>
+  <nav class="analysis-nav" aria-label="Vistas de análisis">
+    <button id="btn-tables" type="button" aria-controls="table-panel" aria-expanded="true" aria-label="Mostrar u ocultar navegador">☰</button>
+    <div class="mode-tabs"><button type="button" data-mode="map" aria-pressed="true">Mapa de módulos</button><button type="button" data-mode="module">Módulo</button><button type="button" data-mode="focus">Enfoque</button><button type="button" data-mode="path">Ruta entre tablas</button><button type="button" data-mode="all">Todo el esquema</button></div>
+    <div class="view-tools"><label for="detail-mode">Detalle <select id="detail-mode"><option value="names">Nombres</option><option value="keys" selected>Claves</option><option value="columns">Columnas</option><option value="auto">Automático</option></select></label><label class="fluid-toggle" title="Reduce temporalmente columnas y etiquetas al mover o acercar; reaparecen al detenerte."><input id="fluid-mode" type="checkbox"> Modo fluido</label><button id="save-view" type="button">Guardar vista</button><button id="toggle-inspector" type="button" aria-expanded="true" aria-controls="inspector">Inspector</button></div>
+  </nav>
+  <main class="workspace">
+    <aside id="table-panel" aria-label="Navegador del esquema">
+      <label for="table-search">Buscar tabla o columna</label><input id="table-search" type="search" placeholder="Ej. pedidos, clientes, facturas…" autocomplete="off">
+      <p id="table-total" class="subtle">Sin esquema</p><div id="table-list" aria-label="Resultados de búsqueda"></div>
+      <h2>Módulos <span id="group-total"></span></h2><div id="module-list"></div>
+      <h2>Vistas guardadas</h2><div id="saved-views"></div>
+      <details class="import-info"><summary>Resultado de importación</summary><section id="import-report" aria-label="Resultado de la importación"></section></details>
+    </aside>
+    <section id="canvas-wrap" aria-label="Diagrama de tablas" aria-busy="false">
+      <div id="analysis-canvas">
+        <div class="canvas-heading"><div><button id="history-back" type="button" aria-label="Volver a la vista anterior" disabled>←</button><span id="breadcrumb">Esquema / Módulos</span></div><span id="canvas-summary"></span></div>
+        <div class="filter-bar">
+          <label><input id="cross-filter" type="checkbox">Referencias transversales</label>
+          <label for="link-mode">Conexiones <select id="link-mode"><option value="context">Del contexto</option><option value="selection" selected>De la selección</option><option value="none">Ocultas</option><option value="all">Todas</option></select></label>
+          <label for="direction-filter">Recorrido <select id="direction-filter"><option value="both">Ambos sentidos</option><option value="out">Referencia a</option><option value="in">Es referenciada por</option></select></label>
+          <label id="depth-control" hidden>Saltos <select id="focus-depth"><option value="0">Solo esta tabla</option><option value="1" selected>1 salto</option><option value="2">2 saltos</option></select></label>
+          <label class="scope-filter">Módulo <select id="scope-filter"><option value="">Todos</option></select></label>
+        </div>
+        <div id="cardinality-legend" class="cardinality-legend" hidden><strong>Cardinalidad por extremo:</strong> <span>1 · uno</span><span>0..1 · opcional, máximo uno</span><span>0..N · cero o varios</span><span>? · dato incompleto</span><small>Según claves y nulabilidad importadas. Acerca o selecciona una conexión para leerla.</small></div>
+        <form id="path-controls" hidden><label>Origen <input id="path-start" list="table-options" placeholder="ventas_pedidos" required></label><label>Destino <input id="path-end" list="table-options" placeholder="crm_clientes" required></label><label>Pasar por <input id="path-via" list="table-options" placeholder="Opcional"></label><button type="submit" class="primary">Buscar ruta</button><select id="path-choice" aria-label="Ruta alternativa" hidden></select><datalist id="table-options"></datalist></form>
+        <div id="graph-viewport" tabindex="0" role="region" aria-label="Canvas. Arrastra el fondo para desplazar. Control y rueda para acercar. Usa los botones para navegar con teclado.">
+          <div id="graph-world"><svg id="graph-edges" aria-label="Relaciones del contexto"></svg><div id="graph-nodes"></div></div>
+          <div id="canvas-empty"><strong>Entiende tu esquema, una parte a la vez.</strong><p>Sube SQL o DBML, pega código o carga el ejemplo.</p><button id="empty-example" type="button">Explorar las 150 tablas del ejemplo</button></div>
+          <div id="layout-progress" hidden role="status"><span>Organizando esta vista…</span><button id="cancel-layout" type="button">Cancelar</button></div>
+        </div>
+        <div class="canvas-controls"><button type="button" id="zoom-out" aria-label="Alejar">−</button><output id="zoom-label">100%</output><button type="button" id="zoom-in" aria-label="Acercar">+</button><button id="btn-overview" type="button">Ajustar vista</button><button id="relayout" type="button">Reordenar</button><button id="undo-layout" type="button" disabled>Deshacer orden</button><label>Separación <input id="layout-spacing" type="range" min="30" max="180" step="10" value="70"></label></div>
+        <svg id="minimap" role="img" aria-label="Minimapa. Pulsa para navegar."></svg>
+        <div id="view-counts" role="status" aria-live="polite"></div>
+      </div>
+      <div id="native-editor" hidden><erd-editor id="editor" enable-welcome-screen></erd-editor></div>
+      <div id="loading-overlay" hidden role="status"><strong>Preparando el esquema…</strong><span>Leyendo y verificando las tablas.</span></div>
+      <div id="drop-overlay" hidden><div class="drop-card"><strong>Suelta tu esquema aquí</strong><span>SQL · DBML · .erd.json · GraphQL · AML</span></div></div>
+    </section>
+    <aside id="inspector" aria-label="Inspector de tablas y relaciones"><div class="inspector-title"><span>INSPECTOR</span><button id="close-inspector" type="button" aria-label="Cerrar inspector">✕</button></div><section id="table-detail" aria-label="Detalle de la selección"></section></aside>
+  </main>
+  <footer class="statusbar"><span id="status" role="status" aria-live="polite">Cargando editor…</span><span id="counts"></span></footer>
+  <dialog id="paste-dialog"><form method="dialog" id="paste-form"><header><h2>Pegar esquema</h2><button type="button" id="btn-close-paste" class="icon" aria-label="Cerrar">✕</button></header><label for="paste-format">Formato</label><select id="paste-format"><option value="sql">SQL DDL (motor elegido en la barra)</option><option value="dbml">DBML</option><option value="json">JSON (.erd.json)</option><option value="graphql">GraphQL SDL</option><option value="aml">AML</option></select><label for="paste-text">Código</label><textarea id="paste-text" spellcheck="false" placeholder="CREATE TABLE users (id INT PRIMARY KEY);"></textarea><footer><span class="hint">El esquema completo se conserva al filtrar las vistas.</span><button type="submit" class="primary">Diagramar</button></footer></form></dialog>
+  <dialog id="expand-dialog"><form method="dialog"><h2 id="expand-title">Ampliar contexto</h2><p id="expand-description"></p><label for="expand-search">Elegir tablas por nombre</label><input id="expand-search" type="search"><div id="expand-list"></div><div class="dialog-actions"><button value="cancel">Cancelar</button><button id="expand-selected" value="selected">Solo las elegidas</button><button class="primary" value="all">Mostrar todas</button></div></form></dialog>
+  <dialog id="name-dialog"><form method="dialog"><h2 id="name-title">Guardar vista</h2><label for="name-value">Nombre</label><input id="name-value" required maxlength="100"><div class="dialog-actions"><button type="button" id="name-cancel">Cancelar</button><button class="primary" value="save">Guardar</button></div></form></dialog>
+  <dialog id="group-dialog"><form method="dialog"><h2>Organizar tabla</h2><p id="group-table-name"></p><label for="group-name">Módulo principal</label><input id="group-name" list="group-options" required maxlength="100"><datalist id="group-options"></datalist><label class="check-label"><input id="group-hub" type="checkbox">Resumir sus referencias como transversales</label><div class="dialog-actions"><button type="button" id="group-cancel">Cancelar</button><button value="save" class="primary">Aplicar</button></div></form></dialog>
+  <div id="measure-node" aria-hidden="true" inert></div>
+  <script src="schema-audit.js"></script><script src="analysis/graph.js"></script><script src="analysis/storage.js"></script><script src="analysis/renderer.js"></script><script src="analysis/explorer.js"></script><script src="app.js"></script>
+</body>
+</html>

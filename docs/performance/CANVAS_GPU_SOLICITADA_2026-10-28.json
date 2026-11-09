@@ -1,0 +1,169 @@
+{
+  "environment": {
+    "binary": "/home/diego/.cache/puppeteer/chrome/linux-154.0.8037.57/chrome-linux64/chrome",
+    "gpuRequested": true,
+    "headless": true,
+    "cpu": 1
+  },
+  "data": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+    "dpr": 1,
+    "viewport": {
+      "width": 1400,
+      "height": 900
+    },
+    "results": [
+      {
+        "case": "mapa",
+        "repeat": 0,
+        "events": 60,
+        "projected": 9,
+        "mounted": 9,
+        "domElements": 67,
+        "handlerP50Ms": 0.2,
+        "handlerP95Ms": 0.3,
+        "rafIntervalP95Ms": 16.8,
+        "rafIntervalsOver33Ms": 0,
+        "commitP95Ms": 0.5,
+        "calls": {
+          "renderCanvas": 60
+        },
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 49.2,
+        "cachedShowCalls": {
+          "renderCanvas": 0
+        }
+      },
+      {
+        "case": "ruta",
+        "repeat": 0,
+        "events": 60,
+        "projected": 3,
+        "mounted": 3,
+        "domElements": 128,
+        "handlerP50Ms": 0.2,
+        "handlerP95Ms": 0.3,
+        "rafIntervalP95Ms": 16.8,
+        "rafIntervalsOver33Ms": 0,
+        "commitP95Ms": 0.6,
+        "calls": {
+          "renderCanvas": 60,
+          "card": 0
+        },
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 50,
+        "cachedShowCalls": {
+          "renderCanvas": 0,
+          "card": 0
+        }
+      },
+      {
+        "case": "todas_claves",
+        "repeat": 0,
+        "events": 60,
+        "projected": 127,
+        "mounted": 127,
+        "domElements": 4336,
+        "handlerP50Ms": 0.2,
+        "handlerP95Ms": 0.2,
+        "rafIntervalP95Ms": 66.7,
+        "rafIntervalsOver33Ms": 58,
+        "commitP95Ms": 9.2,
+        "calls": {
+          "renderCanvas": 60,
+          "card": 0
+        },
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 119.4,
+        "cachedShowCalls": {
+          "renderCanvas": 0,
+          "card": 0
+        }
+      },
+      {
+        "case": "todas_columnas",
+        "repeat": 0,
+        "events": 60,
+        "projected": 127,
+        "mounted": 127,
+        "domElements": 6944,
+        "handlerP50Ms": 0.2,
+        "handlerP95Ms": 0.2,
+        "rafIntervalP95Ms": 83.4,
+        "rafIntervalsOver33Ms": 58,
+        "commitP95Ms": 11.8,
+        "calls": {
+          "renderCanvas": 60,
+          "card": 0
+        },
+        "mutations": {
+          "added": 0,
+          "removed": 0
+        },
+        "renderer": {
+          "frames": 60,
+          "cardsCreated": 0,
+          "cardsRemoved": 0,
+          "pathsCreated": 0,
+          "geometryUpdates": 0,
+          "measurements": 0,
+          "miniBuilds": 0
+        },
+        "cachedShowMs": 63.8,
+        "cachedShowCalls": {
+          "renderCanvas": 0,
+          "card": 0
+        }
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  "errors": [],
+  "machine": {
+    "cpu": "AMD Ryzen AI 7 350 w/ Radeon 860M",
+    "logicalCpus": 16,
+    "memoryGiB": 13.4
+  },
+  "methodology": {
+    "quick": true,
+    "syntheticInput": true,
+    "rafIsNotPresentedFps": true,
+    "notes": "Manejador y commit se miden por separado. rAF no certifica frames presentados. --visible permite revisar GPU real; --disable-gpu permite comparar con la línea base anterior."
+  }
+}

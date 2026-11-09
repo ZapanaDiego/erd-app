@@ -1,0 +1,30 @@
+const assert=require('node:assert/strict');
+const G=require('../analysis/graph.js');
+const c={tableEntities:{},tableColumnEntities:{},relationshipEntities:{}};
+for(const name of ['orders','customers','invoices','shipments','organizations','catalog']){const columnIds=['id','tenant_id','customer_id'].map(column=>{const id=name+column;c.tableColumnEntities[id]={id,name:column,dataType:'INT',options:column==='id'?10:8};return id;});c.tableEntities[name]={id:name,name,columnIds};}
+const edge=(id,child,parent,composite=false)=>c.relationshipEntities[id]={id,start:{tableId:parent,columnIds:composite?[parent+'tenant_id',parent+'id']:[parent+'id']},end:{tableId:child,columnIds:composite?[child+'tenant_id',child+'customer_id']:[child+'id']}};
+edge('r0','orders','customers',true);edge('r1','orders','organizations');edge('r2','orders','orders');edge('r3','invoices','orders');edge('r4','shipments','orders');edge('r5','invoices','customers');
+const doc={collections:c},before=JSON.stringify(doc),groups={orders:'Ventas',customers:'CRM',invoices:'Facturación',shipments:'Logística',organizations:'Acceso',catalog:'Catálogo'};
+const g=G.build(doc,{}, {groups});g.hubs=['organizations'];
+const focus=G.project(g,{mode:'focus',root:'orders',depth:1,direction:'both',cross:false,links:'context'});
+assert.deepEqual(new Set(focus.nodes),new Set(['orders','customers','invoices','shipments']));assert.equal(focus.relations.length,5);assert.equal(focus.hidden,1);assert.equal(focus.boundary[0].group,'Acceso');
+const out=G.project(g,{mode:'focus',root:'orders',depth:1,direction:'out',cross:false});assert.equal(out.nodes.length,2);assert.equal(out.relations.length,2);
+assert.equal(G.project(g,{mode:'map',selected:'Ventas',links:'selection'}).bundles.length,4);assert.equal(G.project(g,{mode:'map',links:'all'}).bundles.length,5);
+assert.deepEqual(G.shortest(g,'invoices','shipments',{cross:false}).nodes,['invoices','orders','shipments']);assert.equal(G.shortest(g,'invoices','shipments',{cross:false,direction:'out'}),null);
+assert.deepEqual(G.search(g,'CUSTOMER_ID'),g.tables.map(t=>t.key));
+assert.equal(g.relations.filter(r=>r.childCols.length===2).length,1);assert.equal(g.relations.filter(r=>r.child===r.parent).length,1);
+G.regroup(g,{orders:'Temporal'});assert.equal(g.tableMap.get('orders').group,'Temporal');G.regroup(g,{});assert.equal(g.tableMap.get('orders').group,'Sin clasificar');
+assert.equal(JSON.stringify(doc),before);console.log('OK: adyacencia, fronteras, dirección, compuestas, bucles, búsqueda y reagrupación sin mutar el documento.');
+
+const all=G.project(g,{mode:'all',cross:false,links:'none',filterGroup:'sin_coincidencias',selected:''});
+assert.equal(all.nodes.length,6);assert.equal(all.relations.length,6);assert.equal(all.bundles.length,6);assert.equal(all.hidden,0);assert.ok(all.bundles.every(b=>b.relations.length===1&&b.cardinality));
+const composite=g.relations.find(r=>r.child==='orders'&&r.parent==='customers');
+assert.deepEqual(G.cardinality(g,composite),{child:'0..N',parent:'1',unique:false,known:true});
+const one=g.relations.find(r=>r.child==='invoices'&&r.parent==='orders');assert.equal(G.cardinality(g,one).child,'0..1');
+g.tableMap.get('invoices').columns.find(c=>c.name==='id').options=2;assert.equal(G.cardinality(g,one).parent,'0..1');
+g.tableMap.get('orders').indexes.push({name:'uq',unique:true,columns:['tenant_id','customer_id']});assert.equal(G.cardinality(g,composite).child,'0..1');
+g.tableMap.get('orders').indexes=[];assert.equal(G.cardinality(g,{...composite,type:8}).child,'0..1');
+assert.equal(G.cardinality(g,{...composite,childCols:['ausente']}).parent,'?');
+const parallel=structuredClone(doc);parallel.collections.relationshipEntities.r6={id:'r6',start:{tableId:'customers',columnIds:['customersid']},end:{tableId:'orders',columnIds:['orderscustomer_id']}};
+const pg=G.build(parallel),pairs=G.project(pg,{mode:'all'}).bundles.filter(b=>b.a==='orders'&&b.b==='customers');assert.equal(pairs.length,2);assert.deepEqual(pairs.map(b=>b.lane),[0,1]);assert.ok(pairs.every(b=>b.lanes===2));
+console.log('OK: esquema completo sin filtros heredados, cardinalidades, opcionalidad, unicidad compuesta y FK paralelas.');
