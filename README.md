@@ -9,7 +9,7 @@ No requiere instalar paquetes ni compilar. El SQL no se ejecuta: se interpreta
 como estructura para dibujarla en el navegador.
 
 La implementación se construyó principalmente con asistencia de IA y revisión
-humana; ver [Origen y método de construcción](#origen-y-método-de-construcción).
+humana; ver [Origen y método de construcción](#origen).
 
 ## Arranque
 
@@ -256,6 +256,8 @@ no conteos reales ni reglas de negocio adicionales. Se mantiene el aviso de
 índices omitidos por el importador; no se deducen restricciones ausentes.
 Con Modo fluido, las etiquetas se ocultan solo durante el movimiento y vuelven
 al detenerse; desactívalo si necesitas verlas continuamente al desplazar.
+
+<a id="origen"></a>
 
 ## Origen y método de construcción
 
