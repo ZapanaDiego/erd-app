@@ -184,6 +184,7 @@ están en `docs/RESULTADOS_OPTIMIZACION_CANVAS.md`.
 | `tools/browser-harness.mjs`, `tools/benchmark-large-canvas.mjs` | Benchmark de 1000/5000 tablas en Chrome. |
 | `start.sh` | Servidor local. |
 | `LICENSE` | Licencia MIT del código propio. |
+| `AGENTS.md`, `agents.mb` | Contexto y registro de decisiones para futuras sesiones. |
 | `vendor/` | Editor y licencias, sin modificaciones. |
 | `docs/` | Planes y resultados históricos del desarrollo. |
 
@@ -262,8 +263,8 @@ Este proyecto se desarrolló principalmente con asistencia de IA en sesiones de
 OpenCode, bajo dirección, revisión y validación humanas. La sesión de publicación
 usó DeepSeek V4.1 Flash. El código propio se escribió para este proyecto; las
 dependencias externas se conservan en `vendor/` con sus licencias. El registro
-interno de sesiones (`agents.mb`) y los esquemas SQL privados usados durante el
-desarrollo no se distribuyen.
+de sesiones `agents.mb` documenta el proceso; los esquemas SQL privados usados
+durante el desarrollo no se distribuyen.
 
 ### Fuentes técnicas
 
