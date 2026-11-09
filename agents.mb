@@ -1,0 +1,888 @@
+# Contexto completo de erd-app
+
+Fecha de revisión: 27 de octubre de 2026, zona America/Lima.
+Directorio: `/home/diego/Proyectos/proyecto/erd-app`.
+Documento solicitado por el usuario con el nombre `agents.mb`; su contenido
+está escrito en Markdown. `AGENTS.md` dirige a este documento.
+
+## 1. Encargo y alcance de esta fase
+
+El usuario quiere cargar archivos de bases de datos, especialmente SQL, para
+generar un diagrama y examinar todas las tablas y sus detalles. Informa de
+problemas al subir SQL y obtener el diagrama. Solicita primero identificar,
+leer y analizar el proyecto y conservar el contexto, sin modificar la aplicación.
+
+Esta revisión solo crea documentación. No corrige los problemas identificados,
+no cambia el parser, no actualiza dependencias ni modifica los SQL originales.
+Se ejecutaron comprobaciones existentes y un diagnóstico temporal en un
+navegador aislado; no se operó sobre el almacenamiento del navegador del usuario.
+
+El usuario llama al resultado «diagrama de clases». La implementación actual
+genera un **diagrama entidad-relación (ERD)**: tablas, columnas y relaciones
+de base de datos. No existe un generador propio de clases UML con métodos,
+herencia o comportamiento. Una futura tarea debe conservar el objetivo de
+visualizar exhaustivamente la base y aclarar esa distinción si afecta el diseño.
+
+## 2. Qué proyecto existe
+
+Es una aplicación web estática local llamada `erd-app`, con identidad visual
+«ERD · Urbanizadoras SaaS». Envuelve el componente web `<erd-editor>`.
+La lógica propia conecta botones y archivos con la API del editor, contabiliza
+entidades y guarda/restaura el documento.
+
+- HTML, CSS y JavaScript nativos, sin framework de aplicación.
+- No hay `package.json`, compilación ni instalación npm requerida para servirla.
+- No hay backend de negocio, conexión a un motor de bases de datos ni ejecución
+  del SQL. Los archivos de entrada se leen como texto en el navegador.
+- El motor de importación, modelo del documento, dibujo, distribución automática
+  y herramientas internas pertenecen al bundle externo incluido en `vendor/`.
+- Se persiste el diagrama resultante, no el SQL original.
+- No hay importador propio de archivos binarios, copias de seguridad o bases
+  SQLite; tampoco procesamiento de Excel/CSV ni archivos comprimidos.
+
+El dominio del ejemplo es un SaaS multiempresa para urbanizadoras: organizaciones,
+usuarios y permisos, proyectos, unidades territoriales y lotes, cartografía,
+contactos y oportunidades, reservas, contratos, ventas, pagos, documentos,
+publicaciones, comisiones, importaciones, auditoría y métricas.
+Esto describe el esquema de ejemplo, no funcionalidades de negocio implementadas
+en este visualizador. Las carpetas hermanas `Proyect-Web` y `visualizadorIdeas`
+no están enlazadas por los archivos de esta aplicación y no se analizaron
+internamente como parte de este encargo.
+
+## 3. Inventario de archivos
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| `index.html` | Barra de acciones, componente de editor, zona de arrastre, estado, contadores y diálogo para pegar texto. |
+| `app.js` | Detección de formatos, importación, guardado JSON, autoguardado, restauración, eventos, arranque y API de diagnóstico. |
+| `styles.css` | Tema de la envoltura, disposición del canvas, botones, superposición, diálogo y adaptación a pantallas pequeñas. |
+| `favicon.svg` | Icono vectorial ERD. |
+| `start.sh` | Sirve el directorio padre por HTTP local con Python y abre el navegador opcionalmente. |
+| `tools/verify.mjs` | Prueba con servidor temporal, Chrome headless y protocolo de depuración del navegador. |
+| `README.md` | Arranque, uso y resultados esperados del SQL de referencia. |
+| `vendor/erd-editor.umd.js` | Bundle de `@dineug/erd-editor` 4.2.0, aproximadamente 5.6 MiB. |
+| `vendor/README.md` | Procedencia, versión, hash e indicación de no modificar el bundle directamente. |
+| `vendor/LICENSE.erd-editor.txt` | Licencia MIT, copyright SeungHwan-Lee. |
+
+Los archivos propios y el verificador se leyeron completos. Del bundle minificado
+se inspeccionaron las API de importación y las rutas internas relevantes; no se
+afirma haber auditado integralmente toda la dependencia ni todas sus funciones.
+Se leyeron las cabeceras y se analizaron las declaraciones de los dos SQL locales.
+
+## 4. Dependencia principal
+
+Versión declarada: `@dineug/erd-editor` 4.2.0, descargada el 26 de octubre de 2026.
+Origen registrado: `https://cdn.jsdelivr.net/npm/@dineug/erd-editor@4.2.0/dist/erd-editor.umd.js`.
+SHA-256 calculado en esta revisión, coincidente con `vendor/README.md`:
+
+`7e455758efc0f4103340b86004ce25c9b40f1302743c09d9f279cacdf3e0cbc9`
+
+No se consultaron fuentes externas: el análisis corresponde a los archivos
+locales, no a la versión más reciente del producto externo.
+El componente usa un Shadow DOM cerrado; los estilos de la envoltura no
+controlan directamente sus elementos internos.
+
+Según el README, el editor ofrece mover tablas, zoom, Explorer, grupos,
+distribución automática y exportaciones DDL/PNG/SVG. No se verificó visualmente
+cada herramienta. La app no implementa estas capacidades por cuenta propia.
+
+## 5. Recorrido de arranque e importación
+
+### Arranque
+
+1. `index.html` carga primero el bundle local y luego `app.js`.
+2. `boot()` espera el registro de `erd-editor` hasta 6 segundos si es necesario.
+3. Espera fija adicional de 80 ms para montar el estado interno; después conecta UI.
+4. Si existe el parámetro `autoload`, intenta obtener el archivo indicado.
+5. Sin `autoload`, restaura el documento guardado en `localStorage`.
+
+`?autoload=1` o `?autoload=` usa `../Urbanizadoras_SaaS_MySQL.sql`.
+Otro valor se trata como URL, se descarga con `fetch` y se importa.
+Si el autoload falla, devuelve igualmente `true`: no se ejecuta la restauración
+normal de ese arranque. Este comportamiento se observa en el código.
+
+### Entradas
+
+- Botón «Subir SQL / DBML»: toma el primer archivo seleccionado.
+- Arrastrar al canvas: toma el primer archivo soltado.
+- Botón «Pegar»: formato elegido manualmente y texto pegado.
+- Botón «Abrir .erd.json»: fuerza formato JSON.
+- Autoload por URL.
+
+Los dos inputs no usan selección múltiple. El arrastre también ignora los
+archivos posteriores al primero. No existe carga acumulativa de un conjunto
+de archivos desde estos controles.
+
+### Formatos y métodos
+
+| Extensión / selección | Ruta aplicada |
+| --- | --- |
+| `.sql` | `editor.setSchemaSQL(text, options)` |
+| `.dbml` | `editor.setSchemaDBML(text, options)` |
+| `.graphql`, `.gql` | `editor.setSchemaGraphQL(text, options)` |
+| `.aml` | `editor.setSchemaAML(text, options)` |
+| `.json`, `.erd.json`, `.vuerd.json` | `editor.setInitialValue(text)` |
+| Desconocida o sin extensión | Se intenta SQL. |
+
+La detección depende del nombre, no del contenido ni de su firma. `.json`
+significa documento de erd-editor, no cualquier JSON de datos o de otra herramienta.
+Los métodos disponibles no prueban compatibilidad exhaustiva de cada formato.
+
+`applyText()` rechaza texto vacío. Las importaciones de esquemas usan
+`{ placement: 'auto', mode: 'replace' }`: reemplazan el diagrama y solicitan
+distribución automática. No se usa modo append desde la lógica propia.
+
+`importText()` usa `busy` para impedir otra importación mientras considera que
+la actual sigue activa. Muestra estado, espera 50 ms, aplica el texto y llama
+`waitForTables()`, que consulta cada 100 ms hasta detectar alguna tabla o cumplir
+20 segundos. Si encuentra tablas, informa éxito y guarda el documento.
+No compara el resultado con todo el contenido del archivo de entrada.
+
+### Dialecto SQL
+
+El selector de pegado dice «SQL DDL (MySQL)», pero `app.js` no fija explícitamente
+un dialecto por importación ni lo detecta del archivo. La ruta interna del bundle
+consulta `settings.database` al convertir SQL. La compatibilidad con otro motor
+debe comprobarse en la configuración del documento y con ejemplos representativos;
+no puede inferirse solo de que el archivo termine en `.sql`.
+
+## 6. Documento, contadores y persistencia
+
+`editor.value` entrega texto JSON. Las colecciones relevantes son:
+
+- `collections.tableEntities`: tablas; nombres e identificadores de columnas.
+- `collections.tableColumnEntities`: columnas y sus propiedades.
+- `collections.relationshipEntities`: relaciones.
+- `collections.indexEntities`: índices importados.
+
+`counts()` cuenta entradas de esas colecciones; admite arrays u objetos.
+La barra inferior muestra solo tablas, columnas y relaciones. Guarda esos tres
+valores además en atributos `data-*`. El contador de índices queda disponible
+en la API de diagnóstico, sin mostrarse en la barra.
+
+`readDocument()` captura JSON inválido, avisa en consola y devuelve un objeto
+vacío. Un conteo cero no distingue por sí solo entre un documento vacío y un
+problema al interpretar el estado.
+
+Clave de almacenamiento: `urbanizadoras.erd.app`. Existe un único documento
+autoguardado por origen del navegador. Cada evento `change` programa un guardado
+con espera de 600 ms y actualiza los contadores. También se guarda al considerar
+exitosa una importación. Los fallos de almacenamiento se registran en consola;
+la UI no comunica explícitamente que el autoguardado falló.
+
+`restoreSaved()` aplica `setInitialValue` y espera tablas hasta 8 segundos.
+`saveJson()` descarga un Blob JSON con nombre fijo `Urbanizadoras.erd.json`.
+`clearDiagram()` pide confirmación, llama `editor.clear()` y elimina la clave.
+No hay historial de archivos ni sistema propio de proyectos múltiples.
+Cambiar puerto u origen cambia el espacio de `localStorage` del navegador.
+
+`window.__erdApp` expone `editor`, `counts`, `importText`, `applyText` y
+`getStatus`, usados para depuración y por el verificador.
+
+## 7. Archivos SQL disponibles en el directorio padre
+
+### Urbanizadoras_SaaS_MySQL.sql
+
+Ruta: `/home/diego/Proyectos/proyecto/Urbanizadoras_SaaS_MySQL.sql`.
+Tamaño: 220084 bytes, 2488 líneas. Su cabecera declara MySQL 8.0.16+, InnoDB,
+utf8mb4, UUID en CHAR(36) y fechas DATETIME(6) manejadas en UTC.
+Incluye `CREATE DATABASE`, `USE`, sentencias `SET`, tablas e índices en las
+definiciones, seguidos de claves foráneas mediante `ALTER TABLE`.
+
+Conteos estáticos del archivo:
+
+- 127 `CREATE TABLE` y 127 declaraciones `PRIMARY KEY`.
+- 1189 líneas de declaración de columnas con identificadores entre backticks.
+- 427 `ALTER TABLE` y 427 declaraciones `FOREIGN KEY`.
+- 283 declaraciones `KEY` / `UNIQUE KEY`, excluidas las claves primarias.
+- No contiene `INSERT INTO`, funciones ni triggers según búsqueda de declaraciones.
+
+Los conteos por patrones sirven para este archivo concreto, no son un parser
+general de SQL. La prueba del editor confirmó 127 tablas, 1189 columnas y
+427 relaciones. Importó 265 entidades de índice. La diferencia de índices existe;
+el README la atribuye a consolidación, pero no se auditó cada uno de los 18 casos.
+No se debe afirmar fidelidad total de índices con la evidencia disponible.
+
+### Modelo_Unificado_v3_1_Restricciones_PostgreSQL.sql
+
+Ruta: `/home/diego/Proyectos/proyecto/Modelo_Unificado_v3_1_Restricciones_PostgreSQL.sql`.
+Tamaño: 42532 bytes, 983 líneas. Su cabecera lo define como overlay complementario
+para PostgreSQL 16+ y PostGIS. Indica preparar PostGIS, generar primero las tablas
+y tipos desde DBML y ejecutar las restricciones al final.
+
+Conteos de declaraciones: 0 `CREATE TABLE`, 0 `FOREIGN KEY`, 22 `CREATE INDEX`
+(incluidos únicos), 8 `ALTER TABLE`, 16 `CREATE FUNCTION` y 19 `CREATE TRIGGER`.
+Incluye exclusiones e índices parciales. No contiene `INSERT INTO` según búsqueda.
+
+**No es un esquema completo** y no permite reconstruir por sí solo todas las
+tablas y columnas. Que no dibuje tablas al abrirse aisladamente no demuestra
+un fallo del importador. Tampoco debe mezclarse automáticamente con el DDL MySQL:
+son motores distintos y no se verificó equivalencia completa de sus modelos.
+
+Los archivos de preparación y DBML mencionados por ese SQL no aparecen entre los
+archivos inmediatos del directorio padre ni en el inventario propio de erd-app.
+No se afirma haberlos buscado en todo el equipo.
+
+## 8. Hallazgo reproducido: éxito prematuro al reimportar
+
+Referencias del código propio: `app.js:112` (`applyText`), `app.js:142`
+(`importText`) y `app.js:95` (`waitForTables`).
+
+El bundle devuelve una promesa para `setSchemaSQL`, `setSchemaDBML`,
+`setSchemaGraphQL` y `setSchemaAML` cuando `placement` es `auto`.
+La importación calcula un documento y espera el ordenamiento antes de sustituir
+el estado del editor. Mientras espera, puede conservar las tablas anteriores.
+
+`applyText()` descarta esa promesa y devuelve `name`. `importText()` tampoco
+espera la operación: solo comprueba si existe alguna tabla. Por tanto, si había
+un diagrama, puede interpretar sus tablas antiguas como resultado de la nueva
+carga, anunciar éxito y liberar `busy` antes de que el nuevo diagrama esté listo.
+Los rechazos asíncronos de los setters tampoco quedan enlazados con su `catch`.
+
+Reproducción ejecutada en Chrome aislado, sin cambiar código de la app:
+
+1. Estado inicial: DBML con tabla `__smoke`, 1 columna y 0 relaciones.
+2. Llamada a `window.__erdApp.importText` con SQL de dos tablas:
+   `__analysis_parent` y `__analysis_child`, 3 columnas y 1 FK en total.
+3. Al resolverse `importText`, devolvió **1 tabla, 1 columna, 0 relaciones**;
+   el documento aún contenía `__smoke`, pero el estado ya decía
+   «diagnostico temporal: diagrama cargado».
+4. Tras esperar 1800 ms, el documento contenía las dos tablas nuevas,
+   3 columnas y 1 relación.
+
+Esto confirma un fallo de sincronización del mensaje de éxito y del resultado
+retornado al reimportar. No demuestra que se pierdan tablas definitivamente.
+Las carreras entre importaciones, guardados prematuros y errores asíncronos
+no mostrados son riesgos derivados; no se reprodujeron todos sus efectos.
+El diagnóstico temporal se ejecutó desde `/tmp/erd-app-analysis-verify.mjs`;
+no forma parte del código mantenido del proyecto.
+
+## 9. Otras limitaciones y riesgos observados
+
+Hechos visibles en el código, salvo donde se indique inferencia:
+
+- La condición de éxito es «hay al menos una tabla», no «se importaron todas».
+  No se notifican declaraciones omitidas, relaciones perdidas o errores por línea
+  desde la envoltura. Una importación parcial puede parecer correcta.
+- La espera de 20 segundos no representa una señal real de fin. Es un riesgo
+  para esquemas grandes; no se midió el límite de rendimiento.
+- Las cargas reemplazan el documento. No hay combinación propia de archivos
+  de creación, migraciones, índices y restricciones.
+- La sugerencia de usar DBML es manual; no hay conversión ni reintento automático.
+- Se presupone texto mediante `File.text()`, sin detección de codificación,
+  tamaño máximo propio ni decodificación específica para archivos no UTF-8.
+- Los errores de lectura de `file.text()` quedan fuera del `try/catch` interno
+  de `importText`; los listeners no añaden manejo propio de esos fallos.
+- Los nombres y el archivo descargado siguen ligados a Urbanizadoras SaaS.
+- La UI propia no ofrece un inventario detallado de columnas ni una auditoría
+  de PK/FK, tipos, nulabilidad, defaults, comentarios, índices o restricciones.
+  Parte del detalle puede estar en las herramientas internas del editor;
+  no se comprobó visualmente toda su cobertura.
+- No se validaron legibilidad, rendimiento o navegación manual del diagrama de
+  127 tablas y 427 relaciones. Tener los conteos correctos no prueba que todo
+  sea fácil de encontrar o leer.
+- No hay generador de conexiones inferidas por nombres de columnas en la app.
+  No se debe prometer relaciones cuando el archivo no declara claves foráneas.
+- La carga manual habitual usa archivos locales; el modo autoload sí puede
+  intentar una URL remota si se proporciona. No existe envío explícito del SQL
+  a un backend en `app.js`, pero no se hizo una auditoría de red del bundle.
+- `start.sh` sirve el directorio padre completo, incluidos los SQL hermanos,
+  enlazado únicamente a `127.0.0.1`.
+
+## 10. Verificación realizada y alcance de la evidencia
+
+Se ejecutó `node tools/verify.mjs` con Chrome de la caché de Puppeteer,
+en perfil temporal independiente. El entorno restringido impedía inicialmente
+abrir puertos locales (`listen EPERM`); la ejecución con permisos adicionales
+permitidos completó la prueba. No fue un error del código de importación.
+
+Resultado confirmado:
+
+```text
+SQL: 127 CREATE TABLE
+Canvas: 127 tablas, 1189 columnas, 427 relaciones, 265 índices
+OK tablas: 127
+OK columnas: 1189
+OK relaciones: 427
+OK tablas del SQL ausentes: 0
+OK tablas extra: 0
+OK ida/vuelta .erd.json: 127 tablas, 1189 columnas, 427 relaciones
+OK restaurar al recargar: 127 tablas
+OK fallback DBML: 1 tabla(s)
+RESULTADO: OK
+```
+
+El diagnóstico temporal adicional volvió a pasar esas comprobaciones y reprodujo
+la reimportación prematura descrita arriba. Ese resultado adicional no forma
+parte de las aserciones de la prueba existente.
+
+También pasaron `node --check app.js`, `node --check tools/verify.mjs` y
+`bash -n start.sh`. El hash del bundle coincide con su registro local.
+
+Límites del verificador actual:
+
+- Depende de un SQL situado fuera de erd-app y de conteos fijos para ese archivo.
+- Reconoce nombres con el patrón específico `CREATE TABLE` y backticks.
+- Compara nombres de tablas, totales de columnas y relaciones; no compara
+  individualmente cada columna, tipo, default, clave ni extremos de cada FK.
+- La ida/vuelta usa `editor.value` y `setInitialValue`; no prueba la descarga
+  física del botón ni la selección de archivo del sistema operativo.
+- El «fallback DBML» prueba una tabla por API; no una conversión desde SQL.
+- No recorre los botones de carga, el arrastre ni el pegado mediante interacción
+  real. No contiene una matriz de motores ni archivos malformados.
+- El puerto temporal de cada ejecución permite aislar el almacenamiento por
+  origen respecto del navegador habitual del usuario.
+
+No hay un repositorio Git utilizable en este entorno: `git status --short`
+devuelve que no es un repositorio, aunque se expone una carpeta `.git`.
+Por ello no se usa un diff de Git como evidencia. Los únicos archivos creados
+en la aplicación durante esta fase son `agents.mb` y `AGENTS.md`.
+
+## 11. Cómo ejecutar en futuras sesiones
+
+Desde el directorio de erd-app:
+
+```sh
+./start.sh
+NO_OPEN=1 ./start.sh
+PORT=8080 ./start.sh
+node tools/verify.mjs
+```
+
+URL por defecto: `http://127.0.0.1:5173/erd-app/`.
+Ejemplo automático: `http://127.0.0.1:5173/erd-app/?autoload=1`.
+Requiere Python 3; la verificación además requiere Node con `fetch` y
+`WebSocket` globales y Chrome/Chromium. Puede indicarse `CHROME_BIN`.
+Usar HTTP, no abrir directamente por `file://`, por los workers del editor.
+
+## 12. Trabajo posterior propuesto, todavía sin implementar
+
+Prioridades derivadas del objetivo y los hallazgos:
+
+1. Esperar la finalización real de las API de importación y capturar sus errores.
+   Confirmar el resultado nuevo antes de anunciar éxito o liberar el bloqueo.
+2. Obtener el SQL concreto que falla y reproducir su problema distinguiendo:
+   archivo sin tablas, incompatibilidad de dialecto, importación parcial,
+   fallo de lectura y problema de disposición/visibilidad.
+3. Definir qué significa «todo tipo de archivos»: DDL de qué motores, dumps
+   de texto, migraciones, SQLite binario, respaldos de motores u otros formatos.
+   No asumir compatibilidad universal ni aplicar el parser SQL a todo archivo.
+4. Definir el detalle requerido: columnas, tipos, PK/FK, nulabilidad, defaults,
+   comentarios, índices, restricciones y navegación por tablas/relaciones.
+5. Diseñar un informe verificable de lo importado y de lo omitido, y protección
+   del documento previo cuando la importación falla.
+6. Evaluar carga de varios archivos y el tratamiento de overlays/migraciones,
+   sin mezclar dialectos ni versiones de modelos sin validación.
+7. Comprobar con casos concretos dialectos, claves compuestas, referencias entre
+   esquemas, ALTER TABLE, índices, tipos especiales y archivos grandes.
+8. Validar manualmente la experiencia con 127 tablas y diagramas más grandes.
+
+Estas prioridades son propuestas de análisis. El encargo actual termina con la
+documentación y no autoriza implementar una solución todavía.
+
+## 13. Inventario de las 127 tablas del SQL MySQL
+
+Se conserva el orden de declaración para ubicar fácilmente el contexto:
+
+```text
+geo_departments
+geo_provinces
+geo_districts
+currencies
+identification_document_types
+coordinate_reference_systems
+territorial_level_types
+hierarchy_templates
+hierarchy_template_levels
+permissions
+dashboard_widgets
+organizations
+organization_settings
+organization_contact_channels
+stored_files
+users
+platform_admins
+organization_memberships
+membership_invitations
+roles
+role_permissions
+membership_roles
+membership_permission_overrides
+teams
+team_memberships
+supervision_assignments
+membership_contact_channels
+membership_preferences
+dashboard_templates
+dashboard_template_widgets
+projects
+project_hierarchy_levels
+territorial_units
+territorial_unit_closure
+lot_status_definitions
+lots
+lot_status_transition_rules
+lot_status_history
+lot_price_history
+lot_attribute_definitions
+lot_attribute_options
+lot_attribute_values
+project_plans
+spatial_features
+spatial_geometry_versions
+data_quality_issues
+portfolio_assignments
+contact_rotation_groups
+contact_rotation_group_members
+contact_rotation_cursors
+contact_routing_policies
+plan_georeferencing_points
+commercial_contacts
+contact_methods
+contact_identifications
+privacy_notice_versions
+contact_privacy_records
+public_contact_events
+opportunities
+opportunity_lots
+opportunity_activities
+opportunity_assignment_history
+public_inquiries
+operation_status_definitions
+commercial_operations
+operation_status_history
+operation_responsibility_history
+operation_parties
+reservation_policies
+reservations
+reservation_extensions
+reservation_cancellations
+contracts
+sales
+sale_reversals
+sale_formalization_cases
+sale_formalization_history
+active_lot_operation_locks
+payment_methods
+payments
+document_types
+documents
+document_reviews
+project_documents
+territorial_unit_documents
+operation_documents
+payment_documents
+contract_documents
+publication_status_definitions
+publications
+publication_versions
+publication_media
+publication_documents
+publication_status_history
+publication_lot_status_policies
+checklist_templates
+checklist_template_items
+checklist_review_instances
+checklist_review_items
+promotions
+seller_commission_categories
+membership_commission_categories
+commission_rules
+commission_rule_versions
+commission_rule_components
+commission_rule_tiers
+commission_rule_applicability
+commission_rule_beneficiaries
+commission_calculations
+commission_calculation_lines
+commission_calculation_payments
+commission_allocations
+commission_adjustments
+commission_settlements
+commission_settlement_items
+commission_payouts
+inventory_imports
+inventory_import_column_mappings
+inventory_import_rows
+inventory_import_row_errors
+audit_events
+user_notifications
+pending_actions
+project_daily_metrics
+seller_daily_metrics
+project_daily_financial_metrics
+seller_daily_financial_metrics
+```
+
+## 14. Actualización: correcciones implementadas tras autorización
+
+El siguiente mensaje del usuario autorizó empezar a corregir y construir,
+permitiendo a Codex importar archivos/código y dejar la visualización disponible.
+Esta sección reemplaza el estado técnico anterior cuando hay diferencias.
+Las secciones 1–13 son el diagnóstico histórico de la primera fase.
+
+### Comportamiento actual
+
+- La app espera las promesas reales de los importadores, incluido el ordenamiento.
+  Desapareció `waitForTables`: las tablas anteriores ya no se toman como éxito.
+- Un bloqueo único cubre lectura, descarga, conversión, distribución y auditoría.
+  Durante la operación se desactivan acciones de reemplazo/guardado y el editor
+  queda `inert`, con una superposición de progreso. No se activa `readonly`,
+  porque también impediría el importador interno.
+- Se toma una copia del documento antes de importar y se restaura si hay error,
+  cero tablas o una discrepancia SQL detectada. El autoguardado queda suspendido
+  durante la transacción. Los rechazos asíncronos y errores de lectura se capturan.
+- Las entradas desconocidas se rechazan, en lugar de intentarse como SQL.
+  JSON se valida como documento moderno de erd-editor (`doc`, `settings`,
+  `collections.tableEntities`), no como JSON genérico.
+- `File.arrayBuffer()` y `TextDecoder` permiten UTF-8 o UTF-16 LE/BE con BOM.
+  Se rechazan codificaciones inválidas y contenido con NUL que parezca binario.
+- Se seleccionan varios SQL del mismo motor/modelo para una importación conjunta.
+  Los demás formatos se procesan individualmente; una selección mixta informa error.
+- El motor SQL se elige explícitamente. Las acciones del SharedStore cambian
+  `settings.database`; no se confía en reemplazar `editor.value`, porque algunos
+  ajustes pueden estar bloqueados al cargar documentos.
+- En SQL de motores distintos de SQLite se añade NOT NULL a las PK importadas
+  cuando es implícito por el motor. Esto evita que el canvas muestre NULL en
+  una PK MySQL aunque la propia declaración PRIMARY KEY la haga obligatoria.
+  SQLite conserva las opciones del parser por sus excepciones de nulabilidad.
+- Se conserva el bundle original y su hash. No se modificaron los SQL originales.
+
+### Visibilidad y navegación
+
+La inspección visual confirmó una causa adicional del «canvas vacío»: el modelo
+estaba cargado y distribuido, pero las tablas quedaban fuera del viewport inicial.
+Ahora una importación de texto prepara una vista general, y la restauración de
+un documento sin tablas a la vista también intenta recuperarla.
+
+Hay un buscador con todas las tablas, detalle de columnas y sus propiedades,
+relaciones entrantes/salientes e índices importados. Se puede centrar una tabla
+con zoom 85% sin recargar el documento ni vaciar el historial.
+El botón «Vista general» permite volver a la navegación del esquema.
+La vista general estima los tamaños de las tablas y respeta el mínimo de zoom
+10% del editor; en modelos grandes parte del mapa puede requerir desplazamiento.
+El buscador y el centrado permiten acceder a cualquier tabla individual.
+
+El editor bloquea por defecto la serialización del viewport con
+`settings.lockSettings`. `positionView` libera solo ese ajuste y después cambia
+el zoom/origen mediante acciones del SharedStore. Esto permite que la vista
+corregida se conserve en el guardado y la restauración.
+
+### Auditoría y límites
+
+Nuevo archivo `schema-audit.js`: tokeniza comentarios, cadenas e identificadores
+para inventariar CREATE TABLE, columnas explícitas, REFERENCES y declaraciones
+KEY/INDEX. Compara nombres de tablas, presencia de columnas declaradas y número
+de relaciones con el documento del editor. Las discrepancias en tablas/columnas/
+relaciones se tratan como error y revierten la importación.
+
+Una diferencia de índices produce un aviso visible. El SQL principal sigue
+representando 265 índices frente a 283 declaraciones no primarias; no se ocultó
+la diferencia ni se afirmó fidelidad total de esos índices.
+
+Esta auditoría no es un parser completo ni un ejecutor de migraciones. No
+certifica la semántica de todos los tipos, defaults, índices, CHECK, triggers,
+funciones, extremos de cada FK, DROP/RENAME ni construcciones específicas de
+cada motor. Exportar un DDL consolidado o DBML sigue siendo el camino para
+formatos fuera del alcance. No se añadió soporte binario para SQLite/backups.
+
+### Importación por Codex y arranque
+
+Se añadió el botón «Cargar ejemplo (127 tablas)», que obtiene el SQL local
+`../Urbanizadoras_SaaS_MySQL.sql` usando MySQL. Se mantuvo `?autoload=1`.
+Si falla un autoload, se intenta restaurar el documento guardado y se informa
+el error del archivo solicitado.
+
+La API `window.__erdApp` expone `ready`, `editor`, `counts`, `importText`,
+`importFiles`, `importUrl` y `getStatus`. Esperar `ready` antes de automatizar.
+`importText(text, format, name, {database})` e `importFiles(files, options)` usan
+el mismo flujo verificado que la interfaz. `importUrl` acepta rutas del mismo
+origen local. No hay un endpoint de subida ni envío del SQL a una nube.
+
+El guardado JSON usa el nombre del documento en lugar del nombre fijo anterior.
+Los fallos de autoguardado se comunican en la barra de estado.
+`README.md` documenta las entradas, APIs y límites actuales.
+
+### Verificación de esta fase
+
+`tools/verify.mjs` conserva los checks del SQL completo y llama ahora a
+`tools/regressions.mjs`. Usa un perfil temporal único y cancela los temporizadores
+CDP al recibir respuestas, evitando esperas de salida innecesarias.
+
+La batería incluye: reimportación, guardado inmediato, archivos sin tablas,
+JSON ajeno/malformado, texto vacío, SQL truncado, FK a tabla inexistente,
+rechazo asíncrono, bloqueo entre operaciones, SQL combinados, UTF-16,
+contenido binario, extensión desconocida, error de lectura, formatos mezclados,
+DDL básicos con comprobación del motor PostgreSQL/SQLite/MSSQL,
+comentarios/literales que contienen SQL, formulario de pegado, arrastre,
+selección física del SQL de referencia, búsqueda, detalle y centrado.
+Se comprueba también NOT NULL implícito en PK MySQL y la ausencia de errores
+sin capturar del navegador. Estos casos no prueban todas las variantes de SQL.
+
+Resultado final ejecutado: **RESULTADO: OK**, todas las comprobaciones anteriores
+pasaron, con 127 tablas, 1189 columnas, 427 relaciones y 0 errores sin capturar.
+También pasaron los chequeos de sintaxis de JavaScript y `start.sh`.
+
+El SQL real se cargó también mediante el selector de archivos de la aplicación
+abierta en el navegador integrado, y se verificó visualmente la tabla
+`geo_provinces`, sus columnas y conexiones. La URL local de uso es
+`http://127.0.0.1:5173/erd-app/`; con `?autoload=1` abre el esquema de referencia.
+El servidor se inició localmente para usar esta visualización; si se detiene,
+se reinicia con `./start.sh`.
+
+## 15. Plan visual para esquemas grandes (sin implementar)
+
+Petición posterior: investigar a profundidad proyectos de visualización de bases
+existentes y preparar primero un plan de frontend para evitar la maraña de líneas.
+La fase actual solo incorpora documentación y una maqueta de conversación;
+no cambia la aplicación, los SQL ni el bundle.
+
+Plan completo: `docs/PLAN_VISUAL_FRONTEND.md`.
+Asignación revisable de las 127 tablas a nueve módulos:
+`docs/MODULOS_PROPUESTOS.json`.
+
+Hallazgos del SQL real: 427 FK, 382 pares de tablas conectados sin dirección,
+281 FK compuestas y 7 autorrelaciones; 389 FK incluyen organization_id.
+organizations recibe 110 FK y organization_memberships 105: juntas 215/427.
+El vecindario de lots alcanza 12 tablas a un salto y 112 hasta dos saltos,
+excluida lots. Expandir vecinos sin filtros vuelve a producir la densidad global.
+
+Dirección propuesta: mapa agregado de módulos → módulo → enfoque de tabla/ruta;
+conexiones transversales resumidas de forma reversible; inspector explícito de
+extremos y pares de columnas; layout estable por subgrafo y vistas persistentes.
+La ruta payments → commercial_operations → lots existe en el SQL. Su flecha
+indica referencia FK hacia la tabla referenciada, no proceso temporal de negocio.
+
+Se investigaron fuentes oficiales de dbdiagram, DataGrip, SqlDBM, DBeaver,
+drawDB, ChartDB, erd-editor, ELK, React Flow y Cytoscape.js. Las fuentes y la
+separación entre hechos y recomendaciones están en el plan.
+
+El bundle instalado contiene Flow/Graph, Name only/Keys only/All fields y
+Alt+F para enfoque. Probar primero su integración y sus límites: no decidir una
+migración de renderer solo por apariencia. Si no cubre subconjuntos exactos,
+filtros y persistencia de vistas, evaluar canvas de análisis separado con
+React Flow/ELK manteniendo el documento e importador originales. El plan incluye
+criterios de aceptación y tamaños sintéticos para ensayo; no son prestaciones
+ya medidas ni garantizadas.
+
+La maqueta se guardó fuera de la aplicación, en el directorio de visualizaciones
+de esta conversación. Se probaron mapa, enfoque y ruta, y el ancho de 360 px.
+No confundir la maqueta con un rediseño implementado en el producto.
+
+## 16. Explorador visual implementado (28 de octubre de 2026)
+
+El usuario autorizó implementar el plan y continuar la construcción. La sección
+15 conserva la fase de planificación, no describe el estado actual.
+
+### Arquitectura y alcance efectivo
+
+Se conserva erd-editor 4.2.0 como importador/editor y documento canónico completo.
+El nuevo canvas de lectura en `analysis/` usa DOM/SVG, nodos virtualizados por
+viewport, un índice independiente y ELK 0.10.0 local en workers. No fue necesario
+introducir React: el proyecto es estático y las proyecciones exactas, filtros y
+vistas se controlan fuera del editor. No se modificó su bundle ni el SQL fuente.
+
+- Mapa inicial de nueve módulos para el ejemplo, sin conexiones globales hasta
+  seleccionar un módulo. Asignación manual revisable desde el inspector.
+- Otros modelos: grupos declarados, esquema del nombre o prefijos; no se
+  implementó detección semántica de comunidades de negocio.
+- Módulo, enfoque a uno/dos saltos, selección manual y esquema completo.
+  Previsualización antes de contextos grandes, con elección parcial o cancelación.
+- Hubs transversales resumidos reversiblemente; dirección y módulo filtrables;
+  contador y acceso a referencias fuera del contexto.
+- Rutas con origen/destino/paso intermedio y hasta tres alternativas. La flecha
+  representa referencia FK, no secuencia temporal de negocio.
+- Inspector de columnas/reglas/índices importados, relaciones agrupadas,
+  autorrelaciones y pares exactos de columnas compuestas. La auditoría recupera
+  los 427 nombres de restricciones FK del SQL de referencia.
+- Nombres, claves, columnas y modo automático nombres/claves por zoom; este
+  último no activa automáticamente todas las columnas.
+- ELK ortogonal, tamaño medido de tarjetas, puertos de columnas simples,
+  fijación, arrastre, separación y deshacer reordenamiento; seleccionar o filtrar
+  conserva las posiciones existentes. Minimapa, zoom y navegación con teclado.
+- Búsqueda por tabla/columna en worker, listado virtualizado. Medición DOM por
+  lotes que ceden el hilo para contextos grandes.
+- Vistas con cámara/filtros/posiciones y grupos locales en IndexedDB. Exportación
+  del documento completo con metadatos `erdApp.analysis`, vistas independientes
+  y SVG del contexto. El SVG no es copia editable del esquema completo.
+- Documento actual en IndexedDB y copia compatible localStorage; editor nativo
+  disponible mediante “Editar esquema”. Importación por archivo, pegado o API
+  local mantiene auditoría, bloqueo y rollback ante errores.
+
+### Correcciones detectadas durante integración
+
+ELK desde un worker necesita su worker oficial explícito: ambos archivos están
+vendorizados con EPL-2.0, procedencia y hashes en vendor/README.md. Al cambiar de
+modelo/modo se impide que ResizeObserver dibuje una proyección antigua usando el
+nuevo índice. La búsqueda invalida respuestas anteriores. La captura de puntero
+comienza al arrastrar, evitando consumir el clic que abre un inspector.
+
+### Comprobaciones y límites
+
+`node tools/verify.mjs` integra importación previa y
+`tools/analysis-regressions.mjs`. El SQL real conserva **127 tablas, 1189 columnas,
+427 FK, 281 FK compuestas y 7 autorrelaciones**. Se verifica mapa, módulo,
+filtros, cancelación de expansión, ruta payments → commercial_operations → lots,
+inspector, exportación, guardado y restauración de vistas, fijación/deshacer y
+que el documento original no cambia al analizarlo. La revisión manual comprobó
+la ruta y el inspector compuesto en el navegador del usuario y la ida/vuelta al
+editor nativo. Captura de esta sesión: `/tmp/erd-explorador-final.png`.
+
+`node tools/benchmark-analysis.cjs`: en esta máquina, índice de 1000 tablas/5000 FK
+78 ms y 5000 tablas/25000 FK 228 ms; proyección y búsqueda 14/60 ms. Comprobó
+integridad del modelo, mapa de 20 grupos y enfoque de 11 nodos. Son mediciones
+puntuales de Node del índice, no del parser SQL, layout global, memoria ni FPS.
+No extrapolar esos resultados a renderizar 5000 tarjetas y todas sus líneas.
+
+Límites explícitos: tras mover/restaurar posiciones, conectores simples pueden
+cruzar nodos; Reordenar recalcula rutas ELK. Fijaciones manuales pueden provocar
+solapamientos tras reordenar. No se garantiza una vista global libre de cruces.
+No hay reconciliación automática de renombres entre modelos con otra huella;
+las vistas importadas omiten referencias ausentes y deben revisarse. El origen
+HTTP identifica el almacenamiento local; exportar para cambiar de origen/equipo.
+Permanece el aviso de 265 índices importados frente a 283 declaraciones: no se
+inventan los faltantes. No se amplió compatibilidad a bases binarias ni se
+certificaron todos los dialectos por extensión.
+
+Resultado final de esta fase: `node tools/verify.mjs` → **RESULTADO: OK**,
+incluyendo clic real con puntero en escritorio, recarga real de vistas y modelo,
+ancho de 360 px sin desborde horizontal y **0 errores sin capturar**.
+La prueba de clic define explícitamente 1400×900 para evitar que los controles
+superpuestos de la pantalla reducida del Chrome headless tapen la tarjeta.
+Pasaron también los chequeos de sintaxis; el SHA-256 del editor original sigue
+siendo `7e455758efc0f4103340b86004ce25c9b40f1302743c09d9f279cacdf3e0cbc9`.
+
+## 17. Plan de optimización de fluidez (28 de octubre de 2026)
+
+Petición actual: preparar una planificación detallada porque el canvas en
+ocasiones va lento. Esta fase agrega diagnóstico, medición exploratoria y plan;
+no implementa optimizaciones ni cambia el comportamiento de la aplicación.
+
+Plan: `docs/PLAN_OPTIMIZACION_CANVAS.md`.
+Datos: `docs/performance/BASELINE_CANVAS_2026-10-28.json`.
+
+Se revisaron entrada, renderizado, medidas, consultas, workers, layout y guardado.
+En un Chrome headless aislado se cargó el ejemplo y se instrumentaron métodos
+solo en memoria. Para 60 eventos sintéticos de rueda, las vistas completas de
+127 tablas crearon 7620 tarjetas y reconstruyeron 120 veces el minimapa.
+Con todas las columnas el manejador tuvo mediana de 92 ms y p95 de 242,3 ms;
+con claves 60/134,5 ms. Volver a presentar una vista con layout en caché todavía
+creó 254 tarjetas (medición + pantalla). El documento original no cambió.
+
+Límites de la medición: una pasada, 60 muestras por caso, headless 154 a
+1400×900/DPR1 y GPU deshabilitada como en el arnés actual; tiempos síncronos de
+manejador, no FPS reales ni pintura total ni INP. No extrapolar al navegador
+visible. Los contadores confirman trabajo repetido, pero la atribución temporal
+final requiere trazas con GPU y repeticiones. No se corrieron regresiones
+funcionales porque no se modificó código de la aplicación en esta fase.
+
+Orden propuesto: instrumentación reproducible → coordinador por fotograma →
+DOM/SVG incremental y minimapa estático → visibilidad de nodos/aristas y detalle
+adaptativo → cachés de medidas/layout → consultas/workers → guardado/pintura.
+Evaluar Canvas 2D para conexiones solo si las mediciones posteriores lo
+justifican. El plan define objetivos de fluidez, memoria, cancelación e integridad,
+matriz de escenarios y criterios de cierre por fase. Son metas, no mejoras
+ya implementadas ni prestaciones garantizadas.
+
+## 18. Optimización de fluidez implementada (28 de octubre de 2026)
+
+El usuario autorizó aplicar el plan de la sección 17. El estado vigente y los
+resultados están en `docs/RESULTADOS_OPTIMIZACION_CANVAS.md`; la aplicación
+continúa en DOM/SVG y el bundle de erd-editor permanece intacto.
+
+Núcleo nuevo: `analysis/renderer.js`, coordinador rAF incremental con mapas de
+nodos y enlaces, índice espacial, rutas cacheadas y minimapa independiente.
+Pan/zoom no reconstruyen el grafo visible; arrastre actualiza incidentes.
+`explorer.js` incorpora medidas cacheadas por nivel/contenido/fuentes, lotes de
+medición, cachés acotadas, histéresis con nivel persistido, modo fluido opcional,
+cola de última consulta y metadatos ligeros del worker. `graph.js` prepara
+agregados/texto y consulta relaciones por adyacencia. `worker.js` evita filtrados
+cuadráticos, devuelve metadatos parciales y dispone explícitamente ELK al cancelar.
+`storage.js` migra a IndexedDB v2 sin borrar entries, con layouts separados,
+estado ligero de cámara y escrituras ordenadas. Los layouts de vistas guardadas
+se protegen de la caché ordinaria. Máximo 100 vistas, igual al límite de lectura
+preexistente, con aviso al crear en lugar de descartarlas al recargar.
+
+Modo fluido: checkbox superior, persistido; oculta temporalmente filas no
+seleccionadas y etiquetas durante gestos, conservando tamaño de tarjetas;
+restaura detalle al parar. Se dejó activo en la vista del navegador del usuario.
+La captura final está en `/tmp/erd-canvas-optimizado.png`.
+
+La comparación de 60 eventos pasó de 7620 tarjetas nuevas/120 reconstrucciones
+de minimapa a cero en ambos casos, sin recalcular geometría ni medir tarjetas
+calientes. La pasada definitiva visible/GPU AMD habilitada, 1400×900/DPR1, produjo
+p95 de manejador/commit de 0,2–0,4 ms e intervalos rAF de 16,7–16,8 ms con modo
+fluido. No confundir rAF con FPS presentados ni extrapolar a toda máquina.
+Ver `docs/performance/CANVAS_FINAL_2026-10-28.json`.
+
+Se evaluó un prototipo Canvas 2D para conexiones, con pruebas funcionales y
+comparación de cinco repeticiones de diez segundos. SVG y 2D dieron los mismos
+intervalos estables (~50 ms sin modo fluido y ~16,7–16,8 ms con él), y 2D añadió
+coste JS. Se retiró el prototipo del producto conforme al criterio del plan.
+Los JSON de experimentos 2D son historial, no una capacidad instalada.
+
+Ensayo grande: 1000/5000 tablas y 5000/25000 FK, mapa de 20 grupos, enfoque de 11
+y módulos de 50/250. Veinte ciclos estabilizados: heap +0,38/+0,34 % con GC
+forzado de laboratorio. No ensaya importación SQL ni layout global de 5000.
+
+Herramientas nuevas: `tools/browser-harness.mjs`, `tools/benchmark-canvas.mjs`,
+`tools/benchmark-large-canvas.mjs`, `tools/performance-regressions.mjs`,
+`tools/test-graph.cjs`. El arnés usa un perfil temporal y puede registrar traza,
+GPU real, modo visible, CPU×4 y resultados JSON. Los escenarios se acotan con
+`--case`; `--quick` es una pasada corta, la opción normal repite cinco veces.
+
+Verificación definitiva: `node tools/verify.mjs` → RESULTADO: OK, 0 errores sin
+capturar; clic/arrastre reales, datos intactos, persistencia, cancelación,
+virtualización, selección, modo fluido y restauración del nivel automático.
+`node tools/test-graph.cjs` y los chequeos de sintaxis pasaron. Foco/Enter en una
+relación SVG también pasó en una prueba de navegador independiente. El wrapper
+UI de la herramienta no pudo enfocar un path SVG; la prueba directa de navegador
+sí confirmó que el producto lo admite.
+
+Los límites de índices, conectores tras restaurar posiciones, fijaciones y
+compatibilidad del importador de la sección 16 permanecen. Para rendimiento
+futuro, medir siempre con opciones/equipo equivalentes y usar el archivo real;
+no extrapolar el índice rápido ni callbacks rAF a fluidez de todo el modelo.
+
+## 19. Todas las FK y cardinalidades en Todo el esquema
+
+Petición posterior del usuario: ver todas las conexiones y su cardinalidad en
+la vista Todo el esquema. Se implementó sobre el renderer incremental SVG.
+
+- `graph.project(mode:all)` ignora filtros de hubs, módulo, dirección y selección;
+  devuelve cada FK como bundle individual, con lane/lanes para paralelas. El
+  ejemplo da 127 tablas, 427 conexiones, 7 autorrelaciones y cero FK ocultas.
+- `stateForWorker`, `edgeShown` y controles hacen explícito ese comportamiento;
+  los filtros aparecen efectivos como Todas/Todos y quedan desactivados en esa
+  vista. Las otras vistas siguen filtrando y agrupando como antes. También se
+  aplica al restaurar paquetes antiguos con filtros heredados.
+- `SchemaGraph.cardinality` calcula extremos hijo/padre usando columnas, NOT
+  NULL, PK, UNIQUE y máximos declarados del modelo. `1` o `0..1` en padre según
+  nulabilidad del FK; `0..1` en hijo si hay unicidad, en otro caso `0..N`. El
+  mínimo hijo es 0: NOT NULL en FK no exige hijos para cada padre. Si faltan
+  columnas se representa `?`. No equivale a conteos ni a reglas de negocio.
+- Cada conexión de Todo el esquema tiene dos etiquetas, título con nombre de
+  restricción/pares de columnas, leyenda y descripción en inspector. La imagen
+  exportada contiene 427 líneas y 854 etiquetas en el ejemplo. Los puertos y las
+  rutas simples distinguen lanes para FK paralelas. Sin modificar el vendor.
+- Modo fluido oculta etiquetas únicamente durante el gesto; vuelven a los 180 ms.
+  Las etiquetas no se eliminan por alejar zoom: hay que acercar para leerlas en
+  un modelo denso. La virtualización mantiene el contexto global y dibuja lo
+  visible, con las mismas garantías de líneas que cruzan la pantalla.
+
+Pruebas: `node tools/test-graph.cjs` y `node tools/verify.mjs` → OK, cero errores
+sin capturar. Nuevo `tools/cardinality-regressions.mjs`: filtros heredados, cada
+FK individual, cardinalidad opcional y compuesta, inspector, exportación,
+restauración de vistas antiguas y conservación del documento. La batería previa
+incluye clic/arrastre reales, guardado, cancelación y ancho de 360 px.
+La unicidad/nulabilidad dependen de lo importado; permanece el aviso 265/283
+índices y no se certifican construcciones SQL que el editor no represente.
+
+Navegación añadida en esta fase: en Todo el esquema, buscar una tabla la centra
+al menos al 90 % sin cambiar de modo ni perder las 427 FK. El inspector ofrece
+Centrar en esta vista; Ir al origen/destino también mantiene el esquema completo
+y la selección de la relación. La regresión nueva comprueba ambos recorridos.
+Ensayo corto posterior (`docs/performance/CANVAS_CARDINALIDADES_2026-10-28.json`):
+127 tablas con columnas y modo fluido, p95 manejador/commit 0,2 ms, intervalo rAF
+p95 16,8 ms, cero tarjetas/líneas/geometrías nuevas durante 60 desplazamientos,
+y cero errores. No equivale a certificar FPS presentados.

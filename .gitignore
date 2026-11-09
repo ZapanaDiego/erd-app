@@ -4,9 +4,6 @@ Urbanizadoras_SaaS_MySQL.sql
 Modelo_Unificado_v3_1_Restricciones_PostgreSQL.sql
 docs/MODULOS_PROPUESTOS.json
 
-# Notas internas de sesión
-agents.mb
-AGENTS.md
 
 # Suite interna ligada al modelo privado de 127 tablas
 tools/verify.mjs
