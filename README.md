@@ -29,6 +29,51 @@ PORT=8080 ./start.sh
 El servidor Python sirve la raíz de este repositorio, solo en `127.0.0.1`.
 Usa HTTP; abrir `index.html` con `file://` impide el funcionamiento de workers.
 
+## Windows
+
+La aplicación web está pensada para navegadores modernos de Windows (Chrome,
+Edge o Firefox). Las pruebas registradas se hicieron en Chrome. El script
+`start.sh` **no es nativo de Windows**: usa Bash, `python3` y `xdg-open`.
+Tampoco abras `index.html` con doble clic, porque los workers necesitan HTTP.
+
+La forma más sencilla es abrir PowerShell o CMD en la raíz del repositorio y
+ejecutar:
+
+```powershell
+py -3 -m http.server 5173 --bind 127.0.0.1
+```
+
+Si no tienes el lanzador `py`:
+
+```powershell
+python -m http.server 5173 --bind 127.0.0.1
+```
+
+Después abre <http://127.0.0.1:5173/>. El ejemplo se carga con
+<http://127.0.0.1:5173/?autoload=1>. El servidor sirve la raíz del repositorio,
+no la ruta `/erd-app/`.
+
+Alternativas:
+
+- **WSL:** `NO_OPEN=1 ./start.sh` con Python 3; en WSL2 normalmente el
+  navegador de Windows puede abrir `localhost`.
+- **Git Bash:** puede ejecutar `./start.sh` si `python3` está en el PATH;
+  `xdg-open` no existe, pero el script lo ignora.
+- **GitHub Pages:** cuando esté activado, la app funciona en Windows sin
+  servidor local.
+
+Herramientas:
+
+- `node tools/test-graph.cjs` y `node tools/benchmark-analysis.cjs` funcionan
+  con Node instalado.
+- `tools/benchmark-large-canvas.mjs` y `tools/browser-harness.mjs` están
+  preparados para Linux: usan `python3`, `which`, rutas de Chrome de Linux y
+  `/tmp`. En Windows nativo pueden fallar; usa WSL o adapta el arnés.
+
+No hay actualmente un lanzador `.bat` o `.ps1` incluido. La app no se ha
+validado en una sesión Windows registrada; el código usa APIs estándar del
+navegador, pero el arranque y el benchmark no están probados en ese sistema.
+
 ## Publicación en GitHub Pages
 
 El repositorio es estático y no necesita compilación. Para publicarlo:

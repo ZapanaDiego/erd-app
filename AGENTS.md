@@ -71,6 +71,11 @@ PORT=8080 ./start.sh
 `start.sh` ya no sirve el directorio padre ni usa `/erd-app/`. La app debe
 abrirse por HTTP: con `file://` fallan los workers.
 
+En Windows no hay `start.sh` nativo: ejecutar
+`py -3 -m http.server 5173 --bind 127.0.0.1` (o `python -m http.server ...`)
+desde la raíz y abrir <http://127.0.0.1:5173/>. El arnés de Chrome y
+`benchmark-large-canvas` están preparados para Linux; ver `README.md` → Windows.
+
 Atajos:
 
 - Ejemplo automático: <http://127.0.0.1:5173/?autoload=1>
@@ -182,7 +187,7 @@ Tamaños a la fecha de esta revisión; pueden cambiar.
 | `vendor/elk.bundled.js`, `vendor/elk-worker.min.js` | — | ELK 0.10.0, EPL-2.0. No modificar. |
 | `AGENTS.md` | — | Este documento. |
 | `agents.mb` | 888 | Registro histórico de sesiones; contiene información y rutas del desarrollo privado. |
-| `README.md` | 325 | Documentación pública, uso, ejemplo, licencias y procedencia. |
+| `README.md` | 370 | Documentación pública, uso, ejemplo, Windows, licencias y procedencia. |
 | `LICENSE` | 21 | MIT del código propio. |
 
 Herramientas **ignoradas** en `.gitignore` y ligadas al modelo privado de 127
